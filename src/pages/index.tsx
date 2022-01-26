@@ -1,30 +1,48 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import pokemons from "../utils/pokemons";
 import Layout from "../components/Layout";
 
 const HomePage = () => {
+  const router = useRouter();
   const [nmPokemon, setNmPokemon] = useState("");
   const [idPokemon, setIdPokemon] = useState(0);
+
   useEffect(() => {
-    setIdPokemon(0);
-    const pkmn = pokemons().find(
-      (item) => item.name === nmPokemon.toLocaleLowerCase(),
-    );
-    if (pkmn !== undefined) {
-      setIdPokemon(pkmn.id);
-      let fomattedName =
-        pkmn.name[0].toUpperCase() +
-        pkmn.name.substring(1, pkmn.name.length).toLocaleLowerCase();
-      setNmPokemon(fomattedName);
+    const lsPokeId = localStorage.getItem("pokeId");
+    if (!lsPokeId) {
+      setIdPokemon(0);
+      const pkmn = pokemons().find(
+        (item) => item.name === nmPokemon.toLocaleLowerCase(),
+      );
+      if (pkmn !== undefined) {
+        setIdPokemon(pkmn.id);
+        let fomattedName =
+          pkmn.name[0].toUpperCase() +
+          pkmn.name.substring(1, pkmn.name.length).toLocaleLowerCase();
+        setNmPokemon(fomattedName);
+      }
+    } else {
+      router.push("/chat");
     }
   }, [nmPokemon]);
+
+  function submitPokemon(e) {
+    e.preventDefault();
+    if (idPokemon !== 0) {
+      localStorage.setItem("pokeId", idPokemon.toString());
+      localStorage.setItem("pokeName", nmPokemon);
+      router.push("/chat");
+    }
+  }
+
   return (
     <Layout title="Home - PokeCord">
       <article className="flex flex-col items-center justify-around w-4/5 max-w-2xl py-10 text-white bg-gray-900 sm:flex-row lg:w-3/5 xl:w-3/5 rounded-xl">
         <section className="mb-8 text-center sm:mb-0">
           <h1 className="text-4xl font-bold">PokeCord</h1>
           <h2>Chat between pokemons!</h2>
-          <form className="flex flex-col">
+          <form className="flex flex-col" onSubmit={submitPokemon}>
             <input
               className={`${
                 idPokemon !== 0 ? "border-green-500" : "border-gray-500"

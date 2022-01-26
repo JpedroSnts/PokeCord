@@ -4,9 +4,14 @@ import Head from "next/head";
 type Props = {
   children?: ReactNode;
   title?: string;
+  classes?: string;
 };
 
-const Layout = ({ children, title = "PokeCord" }: Props) => (
+const Layout = ({
+  children,
+  title = "PokeCord",
+  classes = "flex items-center justify-center w-screen h-screen",
+}: Props) => (
   <>
     <Head>
       <title>{title}</title>
@@ -14,9 +19,7 @@ const Layout = ({ children, title = "PokeCord" }: Props) => (
       <meta name="description" content="Chat between pokemons!" />
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     </Head>
-    <main className="w-screen h-screen flex items-center justify-center">
-      {children}
-    </main>
+    <main className={classes}>{children}</main>
   </>
 );
 

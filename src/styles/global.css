@@ -7,3 +7,19 @@ body {
   background-size: cover;
   background-position-x: center;
 }
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(44, 55, 73);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #909090;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
