@@ -1,8 +1,18 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { PostgrestError } from "@supabase/supabase-js";
+import { getAllMessages, insertMessage, supabase } from "../utils/supabase";
 
 import Message from "../components/Message";
 import Layout from "../components/Layout";
+
+interface MessageData {
+  id_message?: number;
+  id_pokemon: number;
+  nm_pokemon: string;
+  ds_message: string;
+  created_at: string;
+}
 
 const Chat = () => {
   const router = useRouter();
@@ -10,6 +20,7 @@ const Chat = () => {
   const [nmPokemon, setNmPokemon] = useState("");
   const [textMessage, setTextMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState(null);
 
   function logout() {
     localStorage.removeItem("pokeId");
@@ -17,22 +28,35 @@ const Chat = () => {
     router.push("/");
   }
 
-  function submitMessage() {
+  async function submitMessage() {
     if (textMessage.trim() !== "") {
-      const message = {
-        id: Math.floor(Math.random() * new Date().getTime()) + 1,
-        idPokemon,
-        nmPokemon,
-        date: new Date().toLocaleTimeString("pt-BR"),
-        text: textMessage,
+      const message: MessageData = {
+        id_pokemon: idPokemon,
+        nm_pokemon: nmPokemon,
+        ds_message: textMessage,
+        created_at: `${new Date().toLocaleDateString(
+          "pt-BR",
+        )} - ${new Date().toLocaleTimeString("pt-BR")}`,
       };
-      setMessages([...messages, message]);
+      await insertMessage(message);
       setTextMessage("");
-      setTimeout(() => {
-        document.querySelector("#messagesArea").scrollBy(0, 999999);
-      }, 50);
     }
   }
+
+  async function loadMessages() {
+    const { data, error }: { data: MessageData[]; error: PostgrestError } =
+      await getAllMessages();
+    if (error) {
+      console.log(error);
+    } else {
+      setMessages(data);
+    }
+  }
+
+  useEffect(() => {
+    const messagesArea = document.querySelector("#messagesArea");
+    messagesArea.scrollBy(0, messagesArea.scrollHeight);
+  }, [messages]);
 
   useEffect(() => {
     const lsPokeId = localStorage.getItem("pokeId");
@@ -42,8 +66,30 @@ const Chat = () => {
     } else {
       setIdPokemon(parseInt(lsPokeId));
       setNmPokemon(lsPokeName);
+      loadMessages();
     }
   }, []);
+
+  useEffect(() => {
+    const subscription = supabase
+      .from("message")
+      .on("*", (payload) => {
+        if (payload.eventType === "INSERT") {
+          setNewMessage(payload.new);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (newMessage) {
+      setMessages([...messages, newMessage]);
+    }
+  }, [newMessage]);
 
   return (
     <Layout
@@ -78,11 +124,11 @@ const Chat = () => {
         >
           {messages.map((message) => (
             <Message
-              key={message.id}
-              pokeId={message.idPokemon}
-              pokeName={message.nmPokemon}
-              date={message.date}
-              text={message.text}
+              key={message.id_message}
+              pokeId={message.id_pokemon}
+              pokeName={message.nm_pokemon}
+              date={message.created_at}
+              text={message.ds_message}
             />
           ))}
         </article>
