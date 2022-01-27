@@ -27,13 +27,20 @@ const HomePage = () => {
     }
   }, [nmPokemon]);
 
-  function submitPokemon(e) {
-    e.preventDefault();
+  function submitPokemon() {
     if (idPokemon !== 0) {
       localStorage.setItem("pokeId", idPokemon.toString());
       localStorage.setItem("pokeName", nmPokemon);
       router.push("/chat");
     }
+  }
+
+  function generatePokemon() {
+    const randomNumber = Math.floor(Math.random() * (898 - 1)) + 1;
+    const pkmn = pokemons().find((item) => item.id === randomNumber);
+    if (!pkmn) generatePokemon();
+    setIdPokemon(pkmn.id);
+    setNmPokemon(pkmn.name);
   }
 
   return (
@@ -42,27 +49,39 @@ const HomePage = () => {
         <section className="mb-8 text-center sm:mb-0">
           <h1 className="text-4xl font-bold">PokeCord</h1>
           <h2>Chat between pokemons!</h2>
-          <form className="flex flex-col" onSubmit={submitPokemon}>
+          <section className="flex flex-col">
             <input
               className={`${
                 idPokemon !== 0 ? "border-green-500" : "border-gray-500"
-              } px-2 py-0.5 mt-5 mb-1 bg-gray-800 border rounded-lg outline-none text-center`}
+              } px-2 py-0.5 mt-5 bg-gray-800 border rounded-lg outline-none text-center`}
               type="text"
               placeholder="Name of your pokemon"
               value={nmPokemon}
               onChange={(e) => setNmPokemon(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  submitPokemon();
+                }
+              }}
             />
             <button
               className={`${
                 idPokemon !== 0
                   ? "bg-green-500 hover:bg-green-600"
                   : "bg-gray-500"
-              }  rounded-lg outline-none  ease-in-out duration-200 py-0.5`}
+              }  rounded-lg outline-none  ease-in-out duration-200 py-0.5 my-1 mt-2`}
               disabled={idPokemon !== 0 ? false : true}
+              onClick={submitPokemon}
             >
               Login
             </button>
-          </form>
+            <button
+              onClick={generatePokemon}
+              className="bg-blue-600 hover:bg-blue-700 rounded-lg outline-none  ease-in-out duration-200 py-0.5"
+            >
+              Aleatório
+            </button>
+          </section>
         </section>
         <section className="justify-center p-5 bg-gray-800 rounded-lg h-52 w-44">
           {idPokemon !== 0 ? (
